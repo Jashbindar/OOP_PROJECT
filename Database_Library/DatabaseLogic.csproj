@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FirebaseAdmin" Version="3.0.1" />
+    <PackageReference Include="Google.Cloud.Firestore" Version="3.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TransLib-17-11-2024\Homework2Library.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Homework2Library">
+      <HintPath>..\..\Homework2Library\bin\Debug\net7.0\Homework2Library.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

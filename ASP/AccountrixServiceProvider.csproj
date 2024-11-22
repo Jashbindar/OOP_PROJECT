@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FirebaseAdmin" Version="3.1.0" />
+    <PackageReference Include="Google.Cloud.Firestore" Version="3.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DatabaseLib-11-16-2024\DatabaseLogic.csproj" />
+    <ProjectReference Include="..\TransLib-17-11-2024\Homework2Library.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="DatabaseLogic">
+      <HintPath>..\Homework3Library\DatabaseLogic\bin\Debug\net8.0\DatabaseLogic.dll</HintPath>
+    </Reference>
+    <Reference Include="Homework2Library">
+      <HintPath>..\Homework2Library\bin\Debug\net7.0\Homework2Library.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

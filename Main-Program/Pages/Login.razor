@@ -1,0 +1,194 @@
+﻿@page "/login"
+
+@inject NavigationManager _navigation
+@layout LoginRegisterLayout
+
+@inject HttpClient HttpHandler
+@inject UserDetail _LoginLogic
+@inject DatabaseAccountrix _DatabaseLogic
+
+@using App_Classes 
+@using System.Threading.Tasks
+
+<div class="register-page">
+    <div class="form-title">
+        <h1>Login</h1>
+    </div>
+    <hr class="rounded-divider" />
+    <MudPaper Class="pa-16 ma-2" Elevation="20" Style="height: 50em; width: 50em; background-color: #121212; display: flex; flex-direction: column; align-items: center; justify-content: space-between; border-radius: 25px;">
+    <div class="error-message" style="display: @pageState.displaystatus;">
+            @if(@pageState.validationstatus == false)
+            {
+                <MudAlert Severity="Severity.Error" Variant="Variant.Filled">@pageState.ErrorMessage</MudAlert>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Success" Variant="Variant.Filled">@pageState.ErrorMessage</MudAlert>
+            }
+
+    </div>
+
+    <div class="input-section">
+        <MudTextField Class="custom-textfield" @bind-Value="userDetail.email" Label="Email" HelperText="@HelperTextEmail.text" Variant="Variant.Text" />
+    </div>
+
+    <div class="input-section">
+        <MudTextField Class="custom-textfield" @bind-Value="userDetail.password" Label="Password" HelperText="@HelperTextPassword.text" Variant="Variant.Text" InputType="InputType.Password" />
+    </div>
+
+    <div class="btn-sign-up">
+        <MudButton OnClick="async() => await ProcessInfo()" Variant="Variant.Filled" Style="background-color: #fff200; color: #121212; width: 200px; height: 60px;">
+            Login
+        </MudButton>
+    </div>
+    <div class="not-sign-up">
+        <p>Don't have an account? <a href="/register">Sign up!</a></p>
+    </div>
+    <style>
+        .not-sign-up
+        {
+            color: #ffffff
+        }
+
+        .not-sign-up a 
+        {
+        text-decoration: none;
+        color: #fff20091;
+        transition: all 0.3s ease-in-out;
+        }
+
+        .not-sign-up a:hover 
+        {
+        color: #fff200;
+        transform: scale(1.1);
+        }
+    </style>
+    </MudPaper>
+</div>
+
+@code {
+    PageValidation pageState = new PageValidation(false, "none", "");
+    private List<UserDetail> userdatalist = new List<UserDetail>();
+    UserDetail userDetail = new UserDetail();
+    DatabaseAccountrix databaseLogic = new DatabaseAccountrix();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserData();
+    }
+    //function to fetch data
+    private async Task LoadUserData()
+    {
+        try
+        {
+            //save http response into a UserDetail object
+            UserDetail tmp_userDetail = await HttpHandler.GetFromJsonAsync<UserDetail>("/login");
+            //if database fetched nothing, means no user account fount, prompt user to register
+            if (tmp_userDetail != null)
+            {
+                //clear list because if user were to login again, when fetches data, it will store another one in list which is complicated, hence clear list
+                userdatalist.Clear();
+                userdatalist.Add(tmp_userDetail);
+            }
+            else
+            {
+                pageState.SetFailureUI("No account was found!");
+                StateHasChanged();
+            }
+        }
+        catch (Exception)
+        {
+            Console.WriteLine("Not yet create account.");
+        }
+    }
+
+    //default helper text
+    CustomHelperText HelperTextEmail = new CustomHelperText("Enter your registered email");
+    CustomHelperText HelperTextPassword = new CustomHelperText("Enter your password");
+
+
+    private void NavigateToHome()
+    {
+        _navigation.NavigateTo("/dashboard");
+    }
+
+    private void NavigateToLandingPage ()
+    {
+        _navigation.NavigateTo("/");
+    }
+
+    private async Task<bool> ValidateAllInput()
+    {
+        await LoadUserData();
+        try
+        {
+            if (userDetail.email.Contains("@") == false || userDetail.email.EndsWith(".com") == false || String.IsNullOrEmpty(userDetail.email) == true)
+            {
+                pageState.SetFailureUI("Invalid Email Format!");
+                StateHasChanged();
+                return false;
+            }
+            else if (string.IsNullOrWhiteSpace(userDetail.password) == true)
+            {
+                pageState.SetFailureUI("Invalid Password!");
+                StateHasChanged();
+                return false;
+            }
+            else
+            {
+                if (userdatalist.Count == 0)
+                {
+                    pageState.SetFailureUI("Account not found!");
+                    StateHasChanged();
+                    return false;
+                }
+                //fetched userdata stored in correct_userdata for validation
+                UserDetail correct_userdata = userdatalist[0];
+                //userinput stored in  userDetail object
+                userDetail = new UserDetail(userDetail.email, userDetail.password);
+                //compare email
+                if (userDetail.email != correct_userdata.email)
+                {
+                    pageState.SetFailureUI("Account not found!");
+                    StateHasChanged();
+                    return false;
+                }
+                //compare password
+                if (userDetail.email == correct_userdata.email && userDetail.password == correct_userdata.password)
+                {
+                    Console.WriteLine("Login successful");
+                    pageState.SetSuccessUI("Login successful");
+                    StateHasChanged();
+                    return true;
+                }
+                else
+                {
+                    pageState.SetFailureUI("Invalid email or password!");
+                    StateHasChanged();
+                    return false;
+                }
+            }
+        }
+        
+        catch (Exception ex) //to avoid object not created error, minor issue, for tidiness purposes
+        {
+            Console.WriteLine("{0}", userdatalist.Count());
+            Console.WriteLine("Error occurred: " + ex.Message);
+            pageState.SetFailureUI("Empty Field Detected!");
+            StateHasChanged();
+            return false;
+        }
+
+    }
+
+    //function to process info 
+    private async Task ProcessInfo()
+    {
+        //if all account info are correct returns true and lets user access the main app
+        if (await ValidateAllInput() == true)
+        {
+            await Task.Delay(2500);
+            NavigateToHome();
+        }
+    }
+}

@@ -1,0 +1,103 @@
+﻿@page "/assets"
+
+@layout MainLayout
+@inject NavigationManager _navigation
+@inject HttpClient HttpHandler
+@inject UserDetail _RegisterLogic
+@inject DatabaseAccountrix _DatabaseLogic
+
+@using System.Threading.Tasks
+
+<div class="transaction-page" style="display: flex; flex-direction: column; align-items: center; padding: 2em;">
+    <h2 style="color: #ffffff;">Asset Management</h2>
+
+    <div style="display: flex; flex-direction: row; gap: 2em; margin-top: 2em;">
+        <MudPaper Class="pa-8 ma-2" Outlined="true" Style="height: 22em; width: 22em; background-color: #1e1e2d; display: flex; flex-direction: column; align-items: center; padding: 1em; border-radius: 25px;">
+            <h3 style="color: #ffffff; margin-bottom: 1em;">Add Item</h3>
+            <MudTextField Class="transaction-customtextfield" @bind-Value="_item.itemname" Label="Item Name" Variant="Variant.Text"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Inventory" AdornmentColor="Color.Warning" />
+            <MudTextField Class="transaction-customtextfield" @bind-Value="_item.itemcount" Label="Item Quantity" Variant="Variant.Text"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers" AdornmentColor="Color.Warning" />
+            <MudTextField Class="transaction-customtextfield" @bind-Value="_item.price" Label="Item Price" Variant="Variant.Text"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" AdornmentColor="Color.Warning" />
+
+            <MudButton OnClick="async() => await SaveItem()" Variant="Variant.Filled" Size="Size.Large" Color="Color.Tertiary"
+                       StartIcon="@Icons.Material.Filled.Save" Style="margin-top: 1em;">Save Item</MudButton>
+        </MudPaper>
+
+        <MudPaper Class="pa-8 ma-2" Outlined="true" Style="height: 14em; width: 22em; background-color: #1e1e2d; display: flex; flex-direction: column; align-items: center; padding: 1em; border-radius: 25px;">
+            <h3 style="color: #ffffff; margin-bottom: 1em;">Delete Item</h3>
+            <MudTextField Class="transaction-customtextfield" @bind-Value="itemID_to_del" Label="Enter Item ID" Variant="Variant.Text" />
+
+            <MudButton OnClick="async() => await DeleteItem(itemID_to_del)" Variant="Variant.Filled" Size="Size.Large" Color="Color.Error"
+                       StartIcon="@Icons.Material.Filled.Delete" Style="margin-top: 1em;">Delete Item</MudButton>
+        </MudPaper>
+    </div>
+
+    <div style="width: 80%; margin-top: 2em;">
+        <MudDataGrid Items="@itemlist" Filterable="true" SortMode="SortMode.Multiple" Groupable="true">
+            <Columns>
+                <PropertyColumn Property="context => context.itemname" Title="Item Name" />
+                <PropertyColumn Property="context => context.itemcount" Title="Item Quantity" />
+                <PropertyColumn Property="context => context.price" Title="Item Price" Format="C" />
+                <PropertyColumn Property="context => context.itemID" Title="Item ID" />
+            </Columns>
+        </MudDataGrid>
+    </div>
+</div>
+
+
+@code {
+    private IQueryable<Item> itemlist = null;
+    DatabaseAccountrix _databaseLogic = new DatabaseAccountrix();
+    Item _item = new Item();
+
+    private string ?itemID_to_del { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadItem();
+    }
+
+    private async Task LoadItem()
+    {
+        try
+        {
+            //same as TransactionManagement
+            List<Item> ListOfItems = await HttpHandler.GetFromJsonAsync<List<Item>>("/assets");
+            _databaseLogic.tmp_items.items = ListOfItems;
+            itemlist = ListOfItems.AsQueryable();
+
+            _databaseLogic.tmp_items.DisplayInventory();
+
+        }
+        catch (Exception)
+        {
+            Console.WriteLine("No items");
+        }
+
+    }
+
+    private async Task SaveItem()
+    {
+        Item tmp_item = new Item(_item.itemname, _item.itemcount, _item.price);
+        await HttpHandler.PostAsJsonAsync("/assets", tmp_item);
+
+        Console.WriteLine("Assets saved successfully Transaction ID: {0}", tmp_item.itemID);
+        _item.itemname = "";
+        _item.itemcount = 0;
+        _item.price = 0;
+        StateHasChanged();
+        await LoadItem();
+    }
+
+    private async Task DeleteItem(string item_id)
+    {
+        Console.WriteLine("ID contained in button: {0}", item_id);
+        await HttpHandler.PostAsJsonAsync($"/assets/{item_id}", item_id);
+        Console.WriteLine("Item has successfully been removed!");
+        itemID_to_del = "";
+        await LoadItem();
+        StateHasChanged();
+    }
+}

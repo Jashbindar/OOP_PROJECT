@@ -1,0 +1,125 @@
+﻿@page "/"
+@inject NavigationManager _navigation
+@layout LandingPage
+
+<div class="top-section" id="top-section">
+    <div class="landingpage-topbar">
+
+        <div class="TitleContainer">
+            <div class="title-wrapper">
+                <h1>Accountrix</h1>
+            </div>
+            <div class="title-img-container">
+                <img class="title-img-wrapper" src="../css/account_balance_wallet_24dp_000000_FILL0_wght400_GRAD0_opsz24.png">
+            </div>
+        </div>
+
+        <div class="ButtonContainer">
+            <div class="btn-login-wrapper">
+                <MudButton Color="Color.Dark" Variant="Variant.Filled" OnClick="NavigateToLogin" Size="Size.Large">
+                    Login
+                </MudButton>
+            </div>
+            <div class="btn-register-wrapper">
+                <MudButton Color="Color.Dark" Variant="Variant.Outlined" OnClick="NavigateToRegister" Size="Size.Large">
+                    Sign Up
+                </MudButton>
+            </div>
+        </div>
+    </div>
+
+    <div class="landingpage-info-container">
+        <div class="right-section">
+            <div class="text-container">
+                Your <span>Simple & Lightweight</span> finance management web app. 
+            </div>
+            <div class="btn-about-container">
+                <a href="#about-section">
+                    <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.ArrowRight" Style="background-color: #fff200; color: #474747; width: 200px; height: 60px;">
+                        LEARN MORE
+                    </MudButton>
+                </a>
+            </div>
+        </div>
+
+        <div class="left-section">
+            <img class="img-wrapper" src="../css/accountrix-left.jpg"/>
+        </div>
+    </div>
+</div>
+
+<div class="middle-section" id="about-section">
+    <div class="about-us-title">
+        MORE INFO
+    </div>
+    <hr class="rounded-divider"/>
+    <MudCarousel ItemsSource="@cards" Style="height: 1000px; width: 700px" ShowArrows="@_arrows" ShowBullets="@_bullets" EnableSwipeGesture="@_enableSwipeGesture" AutoCycle="@_autocycle">
+        <ItemTemplate>
+            <div class="d-flex flex-column flex-column justify-center align-center px-20 px-n20" style="height:100%">
+                <MudPaper Elevation="20" Height="800px" Width="500px" Style="background-color: #2c2c2a; border-radius: 25px; justify-content: center;">
+                    <MudCardHeader Style="font-family: 'Roboto', sans-serif; font-weight: 700; font-size: 3em; height: fit-content; color: white; justify-content: center; padding-top: 50px;">
+                        @context.Title
+                    </MudCardHeader>
+                    <MudCardContent Style="font-family: 'Roboto', sans-serif; font-weight: 400; font-size: 2em; height: fit-content; color: white; width: 400px; margin-left: 50px; margin-right: 50px; margin-top: 50px;">
+                        @context.Description
+                    </MudCardContent>
+                </MudPaper>
+            </div>
+        </ItemTemplate>
+    </MudCarousel>
+</div>
+
+<div class="footer-section">
+    <div class="footer-wrapper">
+        <h1>Copyright © 2024 Accountrix. All rights reserved.</h1>
+    </div>
+</div>
+
+<a href="#top-section">
+    <div class="rocket-button">
+        <MudFab Color="Color.Dark" StartIcon="@Icons.Material.Filled.Rocket" />
+    </div>
+</a>
+
+
+@code {
+    private void NavigateToRegister()
+    {
+        _navigation.NavigateTo("/register");
+    }
+
+    private void NavigateToLogin()
+    {
+        _navigation.NavigateTo("/login");
+    }
+
+
+    private bool _arrows = true;
+    private bool _bullets = true;
+    private bool _enableSwipeGesture = true;
+    private bool _autocycle = true;
+
+    //created the class here since i lazy create another folder, and its used in landing page only
+    public class CardInfo
+    {
+        public string Title { get; set; }
+        public string Description { get; set; }
+
+        public CardInfo(string a_title, string a_desc)
+        {
+            Title = a_title;
+            Description = a_desc;
+        }
+    }
+
+    //for carousell, feed the UI data
+    public List<CardInfo> cards = new List<CardInfo>
+    {
+        //created multiple objects called CardInfo stored in list
+        new CardInfo("Simple & Quick⚡", "Small program without complex process that will slow down your device. Devices can run the app effortlessly"),
+        new CardInfo("User-Friendly 😀", "Setting up your account only takes a few click. Easy to navigate without overwhelming complex interfaces"),
+        new CardInfo("Key Features ⚙️", "Accoutrix enable users to track their assets & liabilities. Users are also able to track their transaction, so that they never lose track."),
+        new CardInfo("Time Saver ⏰", "Everything with a click. No further thinking is needed."),
+        new CardInfo("Get Insights 🧠", "Intuitive dashboard for users to analyze their financial status. Hence, better decisions are made.")
+    };
+}

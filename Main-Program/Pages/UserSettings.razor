@@ -1,0 +1,119 @@
+﻿@page "/usersettings"
+
+@layout MainLayout
+
+@inject NavigationManager _navigation
+@inject HttpClient HttpHandler
+@inject DatabaseAccountrix _databaseLogic
+@inject UserDetail _ChangeDetailLogic
+@using App_Classes
+
+<div class="register-page" style="background-color: #242640;">
+    <div class="form-title">
+        <h1 style="color: #f8f8ff;">Update User Details</h1>
+    </div>
+    <hr class="rounded-divider" />
+    <MudPaper Class="pa-16 ma-2" Elevation="20" Style="height: 50em; width: 50em; background-color: #121212; display: flex; flex-direction: column; align-items: center; justify-content: space-between; border-radius: 25px;">
+        <div class="error-message" style="display: @pageState.displaystatus;">
+            @if(pageState.validationstatus == false)
+            {
+                <MudAlert Severity="Severity.Error" Variant="Variant.Filled">@pageState.ErrorMessage</MudAlert>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Success" Variant="Variant.Filled">@pageState.ErrorMessage</MudAlert>
+            }
+
+        </div>
+        <div class="input-section">
+            <MudTextField Class="custom-textfield" @bind-Value="tmp_UserDetail.name" Label="First Name" HelperText="@HelperTextName.text" Variant="Variant.Text" />
+        </div>
+        <div class="input-section">
+            <MudTextField Class="custom-textfield" @bind-Value="tmp_UserDetail.email" Label="Email" HelperText="@HelperTextEmail.text" Variant="Variant.Text" />
+        </div>
+        <div class="input-section">
+            <MudTextField Class="custom-textfield" @bind-Value="tmp_UserDetail.password" Label="Password" HelperText="@HelperTextPassword.text" Variant="Variant.Text" InputType="InputType.Password" />
+        </div>
+        <div class="btn-sign-up">
+            <MudButton OnClick="async() => await HandleValidSubmit()" Variant="Variant.Filled" Style="background-color: #fff200; color: #121212; width: 200px; height: 60px;">
+                Update Details
+            </MudButton>
+        </div>
+    </MudPaper>
+</div>
+
+@code {
+    PageValidation pageState = new PageValidation(false, "none", "");
+    CustomHelperText HelperTextName = new CustomHelperText("Max 20 character");
+    CustomHelperText HelperTextEmail = new CustomHelperText("Enter a new email");
+    CustomHelperText HelperTextPassword = new CustomHelperText("Enter a new password");
+
+    UserDetail tmp_UserDetail = new UserDetail();
+    UserDetail fetched_UserDetail = new UserDetail(); // Buffer variable to store fetched user data
+    string fetched_user_ID;
+
+    private void NavigateToLandingPage()
+    {
+        _navigation.NavigateTo("/");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserDetails();
+    }
+
+    private async Task LoadUserDetails()
+    {
+        try
+        {
+            //store fetched user detail into variable
+            fetched_UserDetail = await HttpHandler.GetFromJsonAsync<UserDetail>("/usersettings");
+            //specifically get the fetched user detail props userID into a variable
+            fetched_user_ID = fetched_UserDetail.user_ID;
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error loading user details: " + ex.Message);
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            if (tmp_UserDetail.name.Length >= 20 || tmp_UserDetail.name.Length == 0)
+            {
+                pageState.SetFailureUI("Invalid Name!");
+                StateHasChanged();
+            }
+            else if (tmp_UserDetail.email.Contains("@") == false || tmp_UserDetail.email.EndsWith(".com") == false || String.IsNullOrEmpty(tmp_UserDetail.email) == true)
+            {
+                pageState.SetFailureUI("Invalid Email Format!");
+                StateHasChanged();
+            }
+            else if (string.IsNullOrWhiteSpace(tmp_UserDetail.password) == true)
+            {
+                pageState.SetFailureUI("Invalid Password!");
+                StateHasChanged();
+            }
+            else
+            {
+                //delete data with the fetched user_ID (old user ID)
+                await HttpHandler.PostAsJsonAsync($"/usersettings/{fetched_user_ID}", fetched_user_ID);
+                //set new user data
+                UserDetail newUserDetail = new UserDetail(tmp_UserDetail.email, tmp_UserDetail.password, tmp_UserDetail.name);
+                //save new user data
+                await HttpHandler.PostAsJsonAsync("/usersettings", newUserDetail);
+                pageState.SetSuccessUI("Update Successful!");
+                StateHasChanged();
+                await Task.Delay(2500);
+                NavigateToLandingPage();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error updating user settings: " + ex.Message);
+        }
+    }
+}
